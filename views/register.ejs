@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register</title>
+</head>
+
+
+<body class="container mt-5">
+  <h1 class="mb-4">Register</h1>
+
+  <form align="center" action="/register" method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="name" class="form-label">Name</label>
+      <input type="text" name="name" id="name" class="form-control" required />
+    </div>
+      <br><br>
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" name="email" id="email" class="form-control" required />
+    </div>
+    <br><br>
+    <div class="mb-3">
+      <label for="image" class="form-label">Profile Image</label>
+      <input type="file" name="image" id="image" class="form-control" />
+    </div>
+    <br><br>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" name="password" id="password" class="form-control" required />
+    </div>
+    <br><br>
+    <button type="submit" class="btn btn-primary">Register</button>
+  </form>
+</body>
+</html>
+
+<%
+    if(typeof message !== "undefind"){
+        %>
+        <p style="color: green;"><%= message%></p>
+        <%
+    }
+
+%>
