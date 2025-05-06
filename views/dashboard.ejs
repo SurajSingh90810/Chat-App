@@ -122,6 +122,8 @@
                             `;
                             $j('#chat-container').append(html);
                             socket.emit("newChat",response.data)
+                            scrollChat()
+
                         } else {
                             alert(response.msg);
                         }
@@ -155,6 +157,8 @@
                             `;
                  $j('#chat-container').append(html);
             }
+            scrollChat()
+
         })
 
         socket.on("loadChats",function(data){
@@ -179,8 +183,15 @@
                                 </div>
             `
            }
-           $("#chat-container").append(html)
+           $("#chat-container").append(html);
+           scrollChat()
         })
+
+        function scrollChat() {
+    const chatContainer = $j("#chat-container")[0];
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
     </script>
 </body>
 </html>
