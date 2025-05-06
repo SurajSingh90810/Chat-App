@@ -33,5 +33,7 @@ user_route.post("/",userController.login)
 user_route.get("/logout",auth.isLogin,userController.logout)
 user_route.get("/dashboard",auth.isLogin,userController.loadDashboard)
 
+user_route.post("/save-chat",userController.saveChat)
+
 
 module.exports=user_route;

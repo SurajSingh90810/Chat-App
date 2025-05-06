@@ -1,6 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/chat-app");
+mongoose.connect("mongodb+srv://singhsuraj90810:suraj123@cluster0.eivpzhl.mongodb.net/chatApp");
 
 const express = require("express");
 const app = express();
@@ -15,14 +15,48 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 const userRoute = require("./routes/userRoute");
+const User=require("./models/userModel")
+const Chat=require("./models/chatModel")
+
+
 app.use("/", userRoute);
 
 let usp= io.of("/user-namespace")
-usp.on("connection",function(socket){
+
+
+usp.on("connection", async function(socket){
     console.log("User Connected")
 
-    socket.on("disconnect",function(){
+    var userId=socket.handshake.auth.token;
+   
+  await User.findByIdAndUpdate({_id:userId},{$set:{is_online:"1"}})
+
+  socket.broadcast.emit("getOnlineUser",{user_id:userId})
+
+    socket.on("disconnect",async function(){
+
         console.log("user Disconnected")
+
+        var userId=socket.handshake.auth.token
+   
+        await User.findByIdAndUpdate({_id:userId},{$set:{is_online:"0"}})
+
+        socket.broadcast.emit("getOfflineUser",{user_id:userId})
+
+    })
+
+    socket.on("newChat",function(data){
+        socket.broadcast.emit("loadNewChat",data)
+    })
+
+    socket.on("existsChat",async function(data){
+      var chats= await Chat.find({$or:[
+            {sender_id:data.sender_id,receiver_id:data.receiver_id},
+            {sender_id:data.receiver_id,receiver_id:data.sender_id}
+
+        ]})
+
+        socket.emit("loadChats",{chats:chats});
     })
 })
 

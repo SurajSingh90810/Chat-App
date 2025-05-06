@@ -6,76 +6,183 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <!-- Add jQuery here -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        var $j = jQuery.noConflict();
+    </script>
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        .border {
+            width: 80%;
+        }
+        #chat-container {
+            background-color: lightblue;
+            width: 100%;
+            height: 400px;
+            overflow: scroll;
+        }
+        .chat-section {
+            display: none;
+        }
+        .online-status {
+            color: green;
+        }
+        .offline-status {
+            color: red;
+        }
+        .current-user-chat {
+            text-align: right;
+            margin: 10px;
+            color: black;
+        }
+        .distance-user-chat {
+            text-align: left;
+            margin: 10px;
+            color: black;
+        }
+    </style>
 </head>
-<style>
-    .cursor-pointer{
-        cursor: pointer;
-    }
-    .border{
-        width: 80%;
-    }
-    #chat-container{
-        background-color: lightblue;
-        width: 100%;
-        height: 400px;
-        overflow: scroll;
-    }
-    .chat-section{
-        display: none;
-    }
-</style>
 <body>
     <h2 class="mb-4"> Hii, <%= user.name %></h2>
 
     <div class="row">
         <div class="col-md-3">
             <ul class="list-group">
-                <%
-                    if(users.length>0){
-                        for(let i=0; i<users.length; i++){
-                            %>
-                            <li class="list-group-item list-group-item-dark cursor-pointer user-list">
-                                <img src="<%= users[i]['image']%>" alt="" width="100px" height="100px">
-
-                                <%= users[i]["name"] %>
-
-                            </li>
-                            <%
-                        }
-                    }
-                %>
+                <% if(users.length>0) { %>
+                    <% for(let i=0; i<users.length; i++) { %>
+                        <li class="list-group-item list-group-item-dark cursor-pointer user-list" data-id="<%= users[i]['_id'] %>">
+                            <img src="<%= users[i]['image']%>" alt="" width="100px" height="100px">
+                            <%= users[i]['name'] %>
+                            <% if(users[i]['is_online']==1) { %>
+                                <sup class='online-status' id='<%= users[i]['_id'] %>-status'>Online</sup>
+                            <% } else { %>
+                                <sup class='offline-status' id='<%= users[i]['_id'] %>-status'>Offline</sup>
+                            <% } %>
+                        </li>
+                    <% } %>
+                <% } %>
             </ul>
         </div>
         <div class="col-md-9">
-
             <h3 class="start-head">Click to Start Chat</h3>
             <div class="chat-section">
-                <div id="chat-container">
-
-                </div>
-
+                <div id="chat-container"></div>
                 <form action="" id="chat-form">
                     <input type="text" name="message" placeholder="Enter Message" class="border" id="message" required>
                     <input type="submit" value="Send Message" class="btn btn-primary">
                 </form>
-            </div>
-
+            </div> 
         </div>
     </div>
+
+    <script>
+        var sender_id = '<%= user._id %>';
+        var receiver_id;
+        var socket = io("/user-namespace", {
+            auth: {
+                token: '<%= user._id %>'
+            }
+        });
+    
+        // Use $j instead of $
+        $j(document).ready(function() {
+            $j(".user-list").click(function() {
+                var userId = $j(this).attr("data-id");
+                receiver_id = userId;
+                $j(".start-head").hide();
+                $j(".chat-section").show();
+
+                socket.emit("existsChat",{sender_id:sender_id, receiver_id:receiver_id})
+
+            });
+    
+            $j('#chat-form').submit(function(event) {
+                event.preventDefault();
+                var message = $j('#message').val();
+    
+                $j.ajax({
+                    url: "/save-chat",
+                    type: "POST",
+                    data: {
+                        sender_id: sender_id,
+                        receiver_id: receiver_id,
+                        message: message
+                    },
+                    success: function(response) {
+                        if(response.success) {
+                            $j("#message").val('');
+                            let chat = response.data.message;
+                            let html = `
+                                <div class="current-user-chat">
+                                    <h5>${chat}</h5>
+                                </div>
+                            `;
+                            $j('#chat-container').append(html);
+                            socket.emit("newChat",response.data)
+                        } else {
+                            alert(response.msg);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX Error:", error);
+                    }
+
+                });
+            });
+        });
+    
+        socket.on('getOnlineUser', function(data) {
+            $j('#' + data.user_id + '-status').text('Online')
+                .removeClass('offline-status')
+                .addClass('online-status');
+        });
+    
+        socket.on('getOfflineUser', function(data) {
+            $j('#' + data.user_id + '-status').text('Offline')
+                .addClass('offline-status')
+                .removeClass('online-status');
+        });
+
+        socket.on("loadNewChat",function(data){
+            if(sender_id==data.receiver_id && receiver_id==data.sender_id){
+                let html = `
+                     <div class="distance-user-chat">
+                    <h5>${data.message}</h5>
+                                </div>
+                            `;
+                 $j('#chat-container').append(html);
+            }
+        })
+
+        socket.on("loadChats",function(data){
+
+            $("#chat-container").html("")
+           var chats= data.chats;
+           let html=""
+
+           for(let x=0; x<chats.length; x++){
+                
+            let addClass=""
+
+            if(chats[x]["sender_id"]==sender_id){
+                addClass="current-user-chat"
+            }else{
+                addClass="distance-user-chat"
+            }
+
+            html +=`
+            <div class="`+addClass+`">
+                    <h5>${chats[x]["message"]}</h5>
+                                </div>
+            `
+           }
+           $("#chat-container").append(html)
+        })
+    </script>
 </body>
 </html>
 
-<script>
-
-let socket= io("/user-namespace")
-
-    $(document).ready(function(){
-        $(".user-list").click(function(){
-            $(".start-head").hide()
-            $(".chat-section").show()
-
-        })
-    })
-</script>
-
-<%- include("layout/footer") %> 
+<%- include("layout/footer") %>
