@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path=require("path")
 const mongoose = require("mongoose");
 mongoose.connect(
   "mongodb+srv://singhsuraj90810:suraj123@cluster0.eivpzhl.mongodb.net/chatApp"
@@ -17,7 +18,7 @@ const cookieParser=require("cookie-parser")
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const userRoute = require("./routes/userRoute");
 const User = require("./models/userModel");

@@ -35,7 +35,7 @@ user_route.post("/save-chat", userController.saveChat);
 user_route.post("/delete-chat", userController.deleteChat);
 user_route.post("/update-chat", userController.updateChat);
 
-user_route.get("/groups",upload.single("image"), userController.loadGroups)
+user_route.get("/groups", userController.loadGroups)
 user_route.post("/groups",upload.single("image"), userController.createGroup)
 
 

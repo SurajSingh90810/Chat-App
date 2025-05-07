@@ -28,7 +28,48 @@
 
 
 
-  
+<table class="table mt-4">
+    <thead>
+        <tr>
+            <th>S.No</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Limit</th>
+            <th>Members</th>
+            <th>Action</th>
+        </tr>
+
+        <tbody>
+
+            <%
+             if(groups.length>0){
+                for(let i=0; i<groups.length; i++){
+                    %>
+                    <tr>
+                        <td><%= i+1 %></td>
+                        <td>
+                            <img src="/images/<%= groups[i]['image'] %>" alt="" width="100px" height="100px">                 
+                               </td>
+                        <td>
+                            <%= groups[i]['name'] %>
+                        </td>
+                        <td>
+                            <%= groups[i]['limit'] %>
+                        </td>
+
+                        <td>
+                          <a href="#">Members</a>
+                        </td>
+                    </tr>
+                    <%
+              
+                }
+             }
+            %>
+
+        </tbody>
+    </thead>
+  </table>
 
 
   <div class="modal fade" id="createGroupModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">

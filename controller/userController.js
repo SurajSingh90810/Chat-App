@@ -120,7 +120,12 @@ const updateChat = async (req, res) => {
 
 const loadGroups =async(req,res)=>{
   try {
-    res.render("group")
+    if (!req.session.user) {
+      return res.redirect('/login'); 
+    }
+     const groups= await Group.find({ creator_id:req.session.user._id })
+
+    res.render("group",{groups:groups})
   } catch (error) {
     console.log(error.message)
   }
@@ -139,7 +144,9 @@ const createGroup=async(req,res)=>{
       limit:req.body.limit
     })
     await group.save()
-    res.render("group",{message:req.body.name+"Group Created Successfully"})
+    const groups= await Group.find({ creator_id:req.session.user._id })
+
+    res.render("group",{message:req.body.name+"Group Created Successfully",groups:groups})
   } catch (error) {
     console.log(error.message)
   }
