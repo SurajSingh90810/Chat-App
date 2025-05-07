@@ -43,6 +43,9 @@
             margin: 10px;
             color: black;
         }
+        .fa-trash{
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -77,6 +80,33 @@
             </div> 
         </div>
     </div>
+
+
+
+  <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Delete Chat</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <form id="delete-chat-form">
+        <div class="modal-body">
+            <input type="text" name="id" id="delete-message-id">
+          <p>Are you sure want to delete below Message ?</p>
+          <p><b id="delete-message"></b></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+    </form>
+      </div>
+    </div>
+  </div>
 
     <script>
         var sender_id = '<%= user._id %>';
@@ -161,31 +191,39 @@
 
         })
 
-        socket.on("loadChats",function(data){
+        socket.on("loadChats", function(data) {
+    $("#chat-container").html("");
+    var chats = data.chats;
+    let html = "";
 
-            $("#chat-container").html("")
-           var chats= data.chats;
-           let html=""
+    for (let x = 0; x < chats.length; x++) {
+        let addClass = "";
 
-           for(let x=0; x<chats.length; x++){
-                
-            let addClass=""
+        if (chats[x]["sender_id"] == sender_id) {
+            addClass = "current-user-chat";
+        } else {
+            addClass = "distance-user-chat";
+        }
 
-            if(chats[x]["sender_id"]==sender_id){
-                addClass="current-user-chat"
-            }else{
-                addClass="distance-user-chat"
+                    html += `
+                <div class="${addClass}">
+                    <h5>
+                        ${chats[x]["message"]}`;
+
+            if (chats[x]["sender_id"] == sender_id) {
+                html += ` <i class="fa fa-trash" aria-hidden="true"></i>`;
             }
 
-            html +=`
-            <div class="`+addClass+`">
-                    <h5>${chats[x]["message"]}</h5>
-                                </div>
-            `
-           }
-           $("#chat-container").append(html);
-           scrollChat()
-        })
+            html += `
+                    </h5>
+                </div>`;
+
+                }
+
+    $("#chat-container").append(html);
+    scrollChat();
+});
+
 
         function scrollChat() {
     const chatContainer = $j("#chat-container")[0];
