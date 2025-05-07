@@ -61,6 +61,11 @@ usp.on("connection", async function (socket) {
   socket.on("chatDeleted",function(id){
     socket.broadcast.emit("chatMessageDeleted",id)
   })
+
+  socket.on("chatUpdated",function(data){
+    socket.broadcast.emit("chatMessageUpdated",data)
+  })
+
 });
 
 http.listen(3000, () => {
