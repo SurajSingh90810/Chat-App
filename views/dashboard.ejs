@@ -83,7 +83,7 @@
 
 
 
-  <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal fade" id="deleteChatModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -95,13 +95,13 @@
 
         <form id="delete-chat-form">
         <div class="modal-body">
-            <input type="text" name="id" id="delete-message-id">
+            <input type="hidden" name="id"  id="delete-message-id">
           <p>Are you sure want to delete below Message ?</p>
           <p><b id="delete-message"></b></p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
         </div>
     </form>
       </div>
@@ -117,7 +117,6 @@
             }
         });
     
-        // Use $j instead of $
         $j(document).ready(function() {
             $j(".user-list").click(function() {
                 var userId = $j(this).attr("data-id");
@@ -146,8 +145,10 @@
                             $j("#message").val('');
                             let chat = response.data.message;
                             let html = `
-                                <div class="current-user-chat">
-                                    <h5>${chat}</h5>
+                                <div class="current-user-chat" id="${response.data._id}">
+                                    <h5>${chat}
+                                         <i class="fa fa-trash" aria-hidden="true" data-id="${response.data._id}" data-toggle="modal" data-target="#deleteChatModal"></i>
+                                        </h5>
                                 </div>
                             `;
                             $j('#chat-container').append(html);
@@ -181,7 +182,7 @@
         socket.on("loadNewChat",function(data){
             if(sender_id==data.receiver_id && receiver_id==data.sender_id){
                 let html = `
-                     <div class="distance-user-chat">
+                     <div class="distance-user-chat" id="${data._id}">
                     <h5>${data.message}</h5>
                                 </div>
                             `;
@@ -206,12 +207,12 @@
         }
 
                     html += `
-                <div class="${addClass}">
+                <div class="${addClass}" id="${chats[x]["_id"]}">
                     <h5>
                         ${chats[x]["message"]}`;
 
             if (chats[x]["sender_id"] == sender_id) {
-                html += ` <i class="fa fa-trash" aria-hidden="true"></i>`;
+                html += ` <i class="fa fa-trash" aria-hidden="true" data-id="${chats[x]["_id"]}" data-toggle="modal" data-target="#deleteChatModal"></i>`;
             }
 
             html += `
@@ -230,6 +231,40 @@
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
+
+    $(document).on("click",".fa-trash",function(){
+        let msg= $(this).parent().text()
+        $("#delete-message").text(msg)
+        $("#delete-message-id").val($(this).attr("data-id"))
+
+    })
+
+    $j("#delete-chat-form").submit(function (event) {
+    event.preventDefault();
+    var id = $j("#delete-message-id").val();
+
+    $j.ajax({
+        url: "/delete-chat",
+        type: "POST",
+        data: { id: id },
+        success: function (res) {
+            if (res.success === true) {
+                $("#" + CSS.escape(id)).remove(); 
+                $("#deleteChatModal").modal("hide");
+                socket.emit("chatDeleted", id);
+            } else {
+                alert(res.msg);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Delete AJAX Error:", error);
+        }
+    });
+});
+
+    socket.on("chatMessageDeleted", function(id){
+        $("#"+id).remove()
+    })
     </script>
 </body>
 </html>
