@@ -12,6 +12,9 @@ const io = require("socket.io")(http);
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
+const cookieParser=require("cookie-parser")
+
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -21,6 +24,7 @@ const User = require("./models/userModel");
 const Chat = require("./models/chatModel");
 
 app.use("/", userRoute);
+app.use(cookieParser())
 
 let usp = io.of("/user-namespace");
 
