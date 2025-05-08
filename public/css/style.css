@@ -8372,3 +8372,8 @@ a[data-toggle="collapse"] {
   .fa-edit{
       color: blue;
   }
+  .addMemberTable{
+    overflow-y: scroll;
+    height: 100px;
+    width: 100%;
+  }

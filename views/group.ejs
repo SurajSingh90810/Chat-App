@@ -58,9 +58,9 @@
                         </td>
 
                         <td>
-                          <a href="#">Members</a>
+                          <a class="cursor-pointer addMember" data-id=" <%= groups[i]['_id'] %>" data-limit=" <%= groups[i]['limit'] %>" data-toggle="modal" data-target="#memberModal" >Members</a>
                         </td>
-                    </tr>
+                    </tr> 
                     <%
               
                 }
@@ -71,7 +71,51 @@
     </thead>
   </table>
 
+<!-- Member Modal -->
+  <div class="modal fade" id="memberModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Members</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form action="" id="add-member-form">
+            <div class="modal-body">
+          <input type="hidden" name="group_id" id="group_id" >
+          <input type="hidden" name="limit" id="limit" >
 
+          <table class="table">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody >
+              <tr>
+                <td colspan="2">
+                  <div class="addMemberTable">
+                    <table class="table addMembersInTable">
+                      
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+        </table>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Update Member</button>
+            </div>
+          </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
   <div class="modal fade" id="createGroupModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
@@ -96,7 +140,7 @@
     </div>
   </div>
       
-    </div>
+</div>
 
 
 

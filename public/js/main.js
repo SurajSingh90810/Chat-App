@@ -221,3 +221,42 @@ success: function (res) {
 socket.on("chatMessageUpdated", function(data){
 	$("#"+data.id).find("span").text(data.message)
 })
+
+
+
+$(".addMember").click(function(){
+    var id= $j(this).attr("data-id");
+    var limit= $j(this).attr("data-limit");
+
+    $j("#group_id").val(id);
+    $j("#limit").val(limit);
+
+    $j.ajax({
+        url:"/get-members",
+        type:"POST",
+        data:{group_id:id},
+        success:function(res){  
+            if(res.success==true){
+                let users = res.data;
+                let html = '';
+
+                for(let i=0; i<users.length; i++){
+                    html += `
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="members[]" value="${users[i]['_id']}"/>
+                        </td>
+                        <td>${users[i]['name']}</td>
+                    </tr>
+                    `;
+                }
+                $j(".addMembersInTable").html(html);  
+            }else{
+                alert(res.msg);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX error:", error);
+        }
+    });
+});

@@ -121,7 +121,7 @@ const updateChat = async (req, res) => {
 const loadGroups =async(req,res)=>{
   try {
     if (!req.session.user) {
-      return res.redirect('/login'); 
+      return res.redirect('/'); 
     }
      const groups= await Group.find({ creator_id:req.session.user._id })
 
@@ -134,7 +134,7 @@ const loadGroups =async(req,res)=>{
 const createGroup=async(req,res)=>{
   try {
     if (!req.session.user) {
-      return res.redirect('/login'); 
+      return res.redirect('/'); 
     }
     
     const group=new Group({
@@ -152,7 +152,19 @@ const createGroup=async(req,res)=>{
   }
 }
 
+const getMembers=async(req,res)=>{
+  try {
+    if (!req.session.user) {
+      return res.redirect('/'); 
+    }
+  const users=  await User.find({_id:{$nin:[req.session.user._id]}})
 
+    res.status(200).send({success:true, data:users})
+   
+  } catch (error) {
+    console.log(error.message)
+  }
+}
 
 module.exports = {
   register,
@@ -165,5 +177,6 @@ module.exports = {
   deleteChat,
   updateChat,
   loadGroups,
-  createGroup
+  createGroup,
+  getMembers
 };

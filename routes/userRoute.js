@@ -37,6 +37,6 @@ user_route.post("/update-chat", userController.updateChat);
 
 user_route.get("/groups", userController.loadGroups)
 user_route.post("/groups",upload.single("image"), userController.createGroup)
-
+user_route.post("/get-members", auth.isLogin, userController.getMembers)
 
 module.exports = user_route;
