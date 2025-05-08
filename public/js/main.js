@@ -1,71 +1,71 @@
-(function($) {
+(function ($) {
+  "use strict";
 
-	"use strict";
+  var fullHeight = function () {
+    $(".js-fullheight").css("height", $(window).height());
+    $(window).resize(function () {
+      $(".js-fullheight").css("height", $(window).height());
+    });
+  };
+  fullHeight();
 
-	var fullHeight = function() {
-
-		$('.js-fullheight').css('height', $(window).height());
-		$(window).resize(function(){
-			$('.js-fullheight').css('height', $(window).height());
-		});
-
-	};
-	fullHeight();
-
-	$('#sidebarCollapse').on('click', function () {
-      $('#sidebar').toggleClass('active');
+  $("#sidebarCollapse").on("click", function () {
+    $("#sidebar").toggleClass("active");
   });
-
 })(jQuery);
-
-
 
 // start Dynamic chat app
 
 function getCookie(name) {
-	let matches = document.cookie.match(new RegExp(
-		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-	));
-	return matches ? decodeURIComponent(matches[1]) : undefined;
+  let matches = document.cookie.match(
+    new RegExp(
+      "(?:^|; )" +
+        name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1") +
+        "=([^;]*)"
+    )
+  );
+  return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
-var userData= JSON.parse(getCookie("user"))
+var userData = JSON.parse(getCookie("user"));
 var sender_id = userData._id;
 var receiver_id;
 var socket = io("/user-namespace", {
-	auth: {
-		token: userData._id
-	}
+  auth: {
+    token: userData._id,
+  },
 });
 
-$j(document).ready(function() {
-	$j(".user-list").click(function() {
-		var userId = $j(this).attr("data-id");
-		receiver_id = userId;
-		$j(".start-head").hide();
-		$j(".chat-section").show();
+$j(document).ready(function () {
+  $j(".user-list").click(function () {
+    var userId = $j(this).attr("data-id");
+    receiver_id = userId;
+    $j(".start-head").hide();
+    $j(".chat-section").show();
 
-		socket.emit("existsChat",{sender_id:sender_id, receiver_id:receiver_id})
+    socket.emit("existsChat", {
+      sender_id: sender_id,
+      receiver_id: receiver_id,
+    });
+  });
 
-	});
+  $j("#chat-form").submit(function (event) {
+    event.preventDefault();
+    var message = $j("#message").val();
 
-	$j('#chat-form').submit(function(event) {
-		event.preventDefault();
-		var message = $j('#message').val();
-
-		$j.ajax({
-			url: "/save-chat",
-			type: "POST",
-			data: {
-				sender_id: sender_id,
-				receiver_id: receiver_id,
-				message: message
-			},
-			success: function(response) {
-				if(response.success) {
-					$j("#message").val('');
-					let chat = response.data.message;
-					let html = `
+    $j.ajax({
+      url: "/save-chat",
+      type: "POST",
+      data: {
+        sender_id: sender_id,
+        receiver_id: receiver_id,
+        message: message,
+      },
+      success: function (response) {
+        if (response.success) {
+          $j("#message").val("");
+          let chat = response.data.message;
+          let html = `
 						<div class="current-user-chat" id="${response.data._id}">
 							<h5> <span>${chat}</span>
 								 <i class="fa fa-trash" aria-hidden="true" data-id="${response.data._id}" data-toggle="modal" data-target="#deleteChatModal"></i>
@@ -73,212 +73,234 @@ $j(document).ready(function() {
 								</h5>
 						</div>
 					`;
-					$j('#chat-container').append(html);
-					socket.emit("newChat",response.data)
-					scrollChat()
-
-				} else {
-					alert(response.msg);
-				}
-			},
-			error: function(xhr, status, error) {
-				console.error("AJAX Error:", error);
-			}
-
-		});
-	});
+          $j("#chat-container").append(html);
+          socket.emit("newChat", response.data);
+          scrollChat();
+        } else {
+          alert(response.msg);
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error("AJAX Error:", error);
+      },
+    });
+  });
 });
 
-socket.on('getOnlineUser', function(data) {
-	$j('#' + data.user_id + '-status').text('Online')
-		.removeClass('offline-status')
-		.addClass('online-status');
+socket.on("getOnlineUser", function (data) {
+  $j("#" + data.user_id + "-status")
+    .text("Online")
+    .removeClass("offline-status")
+    .addClass("online-status");
 });
 
-socket.on('getOfflineUser', function(data) {
-	$j('#' + data.user_id + '-status').text('Offline')
-		.addClass('offline-status')
-		.removeClass('online-status');
+socket.on("getOfflineUser", function (data) {
+  $j("#" + data.user_id + "-status")
+    .text("Offline")
+    .addClass("offline-status")
+    .removeClass("online-status");
 });
 
-socket.on("loadNewChat",function(data){
-	if(sender_id==data.receiver_id && receiver_id==data.sender_id){
-		let html = `
+socket.on("loadNewChat", function (data) {
+  if (sender_id == data.receiver_id && receiver_id == data.sender_id) {
+    let html = `
 			 <div class="distance-user-chat" id="${data._id}">
 			<h5>${data.message}</h5>
 						</div>
 					`;
-		 $j('#chat-container').append(html);
-	}
-	scrollChat()
+    $j("#chat-container").append(html);
+  }
+  scrollChat();
+});
 
-})
+socket.on("loadChats", function (data) {
+  $("#chat-container").html("");
+  var chats = data.chats;
+  let html = "";
 
-socket.on("loadChats", function(data) {
-$("#chat-container").html("");
-var chats = data.chats;
-let html = "";
+  for (let x = 0; x < chats.length; x++) {
+    let addClass = "";
 
-for (let x = 0; x < chats.length; x++) {
-let addClass = "";
+    if (chats[x]["sender_id"] == sender_id) {
+      addClass = "current-user-chat";
+    } else {
+      addClass = "distance-user-chat";
+    }
 
-if (chats[x]["sender_id"] == sender_id) {
-	addClass = "current-user-chat";
-} else {
-	addClass = "distance-user-chat";
-}
-
-			html += `
+    html += `
 		<div class="${addClass}" id="${chats[x]["_id"]}">
 			<h5>
 			   <span> ${chats[x]["message"]}</span>`;
 
-	if (chats[x]["sender_id"] == sender_id) {
-		html += ` <i class="fa fa-trash" aria-hidden="true" data-id="${chats[x]["_id"]}" data-toggle="modal" data-target="#deleteChatModal"></i>
+    if (chats[x]["sender_id"] == sender_id) {
+      html += ` <i class="fa fa-trash" aria-hidden="true" data-id="${chats[x]["_id"]}" data-toggle="modal" data-target="#deleteChatModal"></i>
 					<i class="fa fa-edit" aria-hidden="true" data-id="${chats[x]["_id"]}" data-msg="${chats[x]["message"]}" data-toggle="modal" data-target="#editChatModal"></i>`;
-	}
+    }
 
-	html += `
+    html += `
 			</h5>
 		</div>`;
+  }
 
-		}
-
-$("#chat-container").append(html);
-scrollChat();
+  $("#chat-container").append(html);
+  scrollChat();
 });
-
 
 function scrollChat() {
-const chatContainer = $j("#chat-container")[0];
-chatContainer.scrollTop = chatContainer.scrollHeight;
+  const chatContainer = $j("#chat-container")[0];
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-
-$j(document).on("click",".fa-trash",function(){
-let msg= $(this).parent().text()
-$j("#delete-message").text(msg)
-$j("#delete-message-id").val($(this).attr("data-id"))
-
-})
+$j(document).on("click", ".fa-trash", function () {
+  let msg = $(this).parent().text();
+  $j("#delete-message").text(msg);
+  $j("#delete-message-id").val($(this).attr("data-id"));
+});
 
 $j("#delete-chat-form").submit(function (event) {
-event.preventDefault();
-var id = $j("#delete-message-id").val();
+  event.preventDefault();
+  var id = $j("#delete-message-id").val();
 
-$j.ajax({
-url: "/delete-chat",
-type: "POST",
-data: { id: id },
-success: function (res) {
-	if (res.success === true) {
-		$("#" + CSS.escape(id)).remove(); 
-		$("#deleteChatModal").modal("hide");
-		socket.emit("chatDeleted", id);
-	} else {
-		alert(res.msg);
-	}
-},
-error: function (xhr, status, error) {
-	console.error("Delete AJAX Error:", error);
-}
-});
-});
-
-socket.on("chatMessageDeleted", function(id){
-$("#"+id).remove()
-})
-
-$(document).on("click",".fa-edit",function(){
-$("#edit-message-id").val($(this).attr("data-id"))
-$("#update-message").val($(this).attr("data-msg"))
+  $j.ajax({
+    url: "/delete-chat",
+    type: "POST",
+    data: { id: id },
+    success: function (res) {
+      if (res.success === true) {
+        $("#" + CSS.escape(id)).remove();
+        $("#deleteChatModal").modal("hide");
+        socket.emit("chatDeleted", id);
+      } else {
+        alert(res.msg);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Delete AJAX Error:", error);
+    },
+  });
 });
 
+socket.on("chatMessageDeleted", function (id) {
+  $("#" + id).remove();
+});
 
+$(document).on("click", ".fa-edit", function () {
+  $("#edit-message-id").val($(this).attr("data-id"));
+  $("#update-message").val($(this).attr("data-msg"));
+});
 
 $("#update-chat-form").submit(function (event) {
-event.preventDefault();
-var id = $("#edit-message-id").val();
-var msg = $("#update-message").val();
+  event.preventDefault();
+  var id = $("#edit-message-id").val();
+  var msg = $("#update-message").val();
 
-$j.ajax({
-url: "/update-chat",
-type: "POST",
-data: { id: id, message:msg },
-success: function (res) {
-	if (res.success === true) {
-		$("#"+id).find("span").text(msg)
-		$("#"+id).find(".fa-edit").attr("data-msg",msg)
-		$("#editChatModal").modal("hide");
-		socket.emit("chatUpdated", {id:id,message:msg});
-	} else {
-		alert(res.msg);
-	}
-},
+  $j.ajax({
+    url: "/update-chat",
+    type: "POST",
+    data: { id: id, message: msg },
+    success: function (res) {
+      if (res.success === true) {
+        $("#" + id)
+          .find("span")
+          .text(msg);
+        $("#" + id)
+          .find(".fa-edit")
+          .attr("data-msg", msg);
+        $("#editChatModal").modal("hide");
+        socket.emit("chatUpdated", { id: id, message: msg });
+      } else {
+        alert(res.msg);
+      }
+    },
+  });
 });
+
+socket.on("chatMessageUpdated", function (data) {
+  $("#" + data.id)
+    .find("span")
+    .text(data.message);
 });
 
-socket.on("chatMessageUpdated", function(data){
-	$("#"+data.id).find("span").text(data.message)
-})
+$(".addMember").click(function () {
+  var id = $(this).attr("data-id");
+  var limit = $(this).attr("data-limit");
 
+  $("#group_id").val(id);
+  $("#limit").val(limit);
 
-
-$(".addMember").click(function(){
-    var id= $(this).attr("data-id");
-    var limit= $(this).attr("data-limit");
-
-    $("#group_id").val(id);
-    $("#limit").val(limit);
-
-    $j.ajax({
-        url:"/get-members",
-        type:"POST",
-        data:{group_id:id},
-		success:function(res){  
-			console.log("Response:", res); // Inspect this in browser console
-			if(res.success && res.data){
-			  console.log("Users data:", res.data); // Check if data exists
-			  let html = '';
-			  res.data.forEach(user => {
-				console.log("User:", user); // Verify each user object
-				let isMember = user.member && user.member.length > 0;
-				html += `<tr>
-				  <td><input type="checkbox" ${isMember ? 'checked' : ''} name="members[]" value="${user._id}" /></td>
-				  <td>${user.name || 'No Name'}</td>
+  $j.ajax({
+    url: "/get-members",
+    type: "POST",
+    data: { group_id: id },
+    success: function (res) {
+      console.log("Response:", res); // Inspect this in browser console
+      if (res.success && res.data) {
+        console.log("Users data:", res.data); // Check if data exists
+        let html = "";
+        res.data.forEach((user) => {
+          console.log("User:", user); // Verify each user object
+          let isMember = user.member && user.member.length > 0;
+          html += `<tr>
+				  <td><input type="checkbox" ${
+            isMember ? "checked" : ""
+          } name="members[]" value="${user._id}" /></td>
+				  <td>${user.name || "No Name"}</td>
 				</tr>`;
-			  });
-			  $(".addMembersInTable").html(html);  
-			}
-		  },
-        error: function(xhr, status, error) {
-            console.error("AJAX error:", error);
-        }
-    });
+        });
+        $(".addMembersInTable").html(html);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("AJAX error:", error);
+    },
+  });
 });
 
+$("#add-member-form").submit(function (event) {
+  event.preventDefault();
 
+  var formData = $(this).serialize();
+  $j.ajax({
+    url: "/add-members",
+    type: "POST",
+    data: formData,
+    success: function (res) {
+      if (res.success) {
+        $("#memberModal").modal("hide");
+        $("#add-member-form")[0].reset();
+      } else {
+        $("#add-member-error").text(res.msg);
+        setTimeout(() => {
+          $("#add-member-error").text("");
+        }, 3000);
+      }
+    },
+  });
+});
 
-$("#add-member-form").submit(function(event){
-	event.preventDefault();
+$(".updateMember").click(function () {
+  var obj = JSON.parse($(this).attr("data-obj"));
 
-	var formData=$(this).serialize();
-	$j.ajax({
-		url:"/add-members",
-		type:"POST",
-		data:formData,
-		success:function(res){
-			if(res.success){
-				
-				$("#memberModal").modal("hide")
-				$("#add-member-form")[0].reset();
-			}else{
-				$("#add-member-error").text(res.msg)
-				setTimeout(()=>{
-					$("#add-member-error").text("")
+  $("#update_group_id").val(obj._id);
+  $("#last_limit").val(obj.limit);
+  $("#group_name").val(obj.name);
+  $("#group_limit").val(obj.limit);
+});
 
-				},3000)
-			}
-		}
-	})
-})
+$("#updateChatGroupForm").submit(function (e) {
+  e.preventDefault();
+
+  $j.ajax({
+    url: "/update-chat-group",
+    type: "POST",
+    data: new FormData(this),
+    contentType: false,
+    cache: false,
+    processData: false,
+    success: function (res) {
+      if (res.success) {
+        location.reload();
+      }
+    },
+  });
+});
