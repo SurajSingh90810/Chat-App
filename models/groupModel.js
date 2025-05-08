@@ -18,6 +18,6 @@ const groupSchema=new mongoose.Schema({
     type:Number,
     required:true
   }
-},{timestamps:true})
+},{timestamps:true, versionKey:false})
 
 module.exports=mongoose.model("Group",groupSchema)

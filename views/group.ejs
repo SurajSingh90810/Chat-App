@@ -48,7 +48,7 @@
                     <tr>
                         <td><%= i+1 %></td>
                         <td>
-                            <img src="/images/<%= groups[i]['image'] %>" alt="" width="100px" height="100px">                 
+                            <img src="<%= groups[i]['image'] %>" alt="" width="100px" height="100px">                 
                                </td>
                         <td>
                             <%= groups[i]['name'] %>
@@ -58,8 +58,17 @@
                         </td>
 
                         <td>
-                          <a class="cursor-pointer addMember" data-id=" <%= groups[i]['_id'] %>" data-limit=" <%= groups[i]['limit'] %>" data-toggle="modal" data-target="#memberModal" >Members</a>
+                          <a
+                            class="cursor-pointer addMember"
+                            data-id="<%= groups[i]._id %>"
+                            data-limit="<%= groups[i].limit %>"
+                            data-toggle="modal"
+                            data-target="#memberModal"
+                          >
+                            Members
+                          </a>
                         </td>
+                        
                     </tr> 
                     <%
               
@@ -107,6 +116,9 @@
         </table>
             </div>
             <div class="modal-footer">
+              <p id="add-member-error">
+                
+              </p>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
               <button type="submit" class="btn btn-primary">Update Member</button>
             </div>

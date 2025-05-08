@@ -225,38 +225,60 @@ socket.on("chatMessageUpdated", function(data){
 
 
 $(".addMember").click(function(){
-    var id= $j(this).attr("data-id");
-    var limit= $j(this).attr("data-limit");
+    var id= $(this).attr("data-id");
+    var limit= $(this).attr("data-limit");
 
-    $j("#group_id").val(id);
-    $j("#limit").val(limit);
+    $("#group_id").val(id);
+    $("#limit").val(limit);
 
     $j.ajax({
         url:"/get-members",
         type:"POST",
         data:{group_id:id},
-        success:function(res){  
-            if(res.success==true){
-                let users = res.data;
-                let html = '';
-
-                for(let i=0; i<users.length; i++){
-                    html += `
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="members[]" value="${users[i]['_id']}"/>
-                        </td>
-                        <td>${users[i]['name']}</td>
-                    </tr>
-                    `;
-                }
-                $j(".addMembersInTable").html(html);  
-            }else{
-                alert(res.msg);
-            }
-        },
+		success:function(res){  
+			console.log("Response:", res); // Inspect this in browser console
+			if(res.success && res.data){
+			  console.log("Users data:", res.data); // Check if data exists
+			  let html = '';
+			  res.data.forEach(user => {
+				console.log("User:", user); // Verify each user object
+				let isMember = user.member && user.member.length > 0;
+				html += `<tr>
+				  <td><input type="checkbox" ${isMember ? 'checked' : ''} name="members[]" value="${user._id}" /></td>
+				  <td>${user.name || 'No Name'}</td>
+				</tr>`;
+			  });
+			  $(".addMembersInTable").html(html);  
+			}
+		  },
         error: function(xhr, status, error) {
             console.error("AJAX error:", error);
         }
     });
 });
+
+
+
+$("#add-member-form").submit(function(event){
+	event.preventDefault();
+
+	var formData=$(this).serialize();
+	$j.ajax({
+		url:"/add-members",
+		type:"POST",
+		data:formData,
+		success:function(res){
+			if(res.success){
+				
+				$("#memberModal").modal("hide")
+				$("#add-member-form")[0].reset();
+			}else{
+				$("#add-member-error").text(res.msg)
+				setTimeout(()=>{
+					$("#add-member-error").text("")
+
+				},3000)
+			}
+		}
+	})
+})

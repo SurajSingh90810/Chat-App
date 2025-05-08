@@ -8374,6 +8374,10 @@ a[data-toggle="collapse"] {
   }
   .addMemberTable{
     overflow-y: scroll;
-    height: 100px;
+    height: 200px;
     width: 100%;
+  }
+
+  #add-member-error{
+    color: red;
   }

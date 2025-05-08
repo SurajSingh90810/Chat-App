@@ -3,7 +3,8 @@ const bcrypt = require("bcrypt");
 const session = require("express-session");
 const chatModel = require("../models/chatModel");
 const Group=require("../models/groupModel")
-
+const Member=require("../models/memberModel");
+const mongoose=require("mongoose")
 
 const registerLoad = (req, res) => {
   res.render("register", { message: "" });
@@ -131,40 +132,89 @@ const loadGroups =async(req,res)=>{
   }
 }
 
-const createGroup=async(req,res)=>{
+const createGroup = async(req,res) => {
   try {
     if (!req.session.user) {
       return res.redirect('/'); 
     }
     
-    const group=new Group({
-      creator_id:req.session.user._id,
-      name:req.body.name,
-      image:"image/"+req.file.filename,
-      limit:req.body.limit
+    const group = new Group({
+      creator_id: req.session.user._id,
+      name: req.body.name,
+      image: "images/"+req.file.filename,  // Changed from "image/" to "images/"
+      limit: req.body.limit
     })
-    await group.save()
-    const groups= await Group.find({ creator_id:req.session.user._id })
+    await group.save();
+    const groups = await Group.find({ creator_id:req.session.user._id })
 
-    res.render("group",{message:req.body.name+"Group Created Successfully",groups:groups})
+    res.render("group", {
+      message: req.body.name + " Group Created Successfully",
+      groups: groups
+    })
   } catch (error) {
     console.log(error.message)
   }
 }
 
-const getMembers=async(req,res)=>{
+const getMembers = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.redirect('/'); 
-    }
-  const users=  await User.find({_id:{$nin:[req.session.user._id]}})
+    if (!req.session.user) return res.redirect('/');
+    if (!req.body.group_id) return res.status(400).send({ success: false, message: "group_id is required" });
 
-    res.status(200).send({success:true, data:users})
+    const groupMembers = await Member.find({ 
+      group_id: req.body.group_id 
+    }).select('user_id -_id');
+
+    const allUsers = await User.find({
+      _id: { $ne: req.session.user._id }
+    }).select('name _id');
+
+    res.status(200).send({ 
+      success: true, 
+      data: allUsers.map(user => ({
+        ...user.toObject(),
+        member: groupMembers.some(m => m.user_id.equals(user._id)) ? [{ _id: user._id }] : []
+      }))
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send({ success: false, message: "Error fetching members" });
+  }
+}
+
+
+
+const addMembers=async(req,res)=>{
+  try {
+  
+    if(!req.body.members){
+      res.status(200).send({success:false, msg:"Please select any one Memeber"})
+    }else if(req.body.members.length>parseInt(req.body.limit)){
+      res.status(200).send({success:false, msg:"You can not select more than"+req.body.limit+" Members"})
+    }else{
+
+      await Member.deleteMany({group_id:req.body.group_id.trim()})
+      var data=[]
+      const members=req.body.members;
+
+      for(let i=0; i<members.length; i++){
+        data.push({
+          group_id: req.body.group_id.trim(),
+          user_id:members[i]
+        })
+      }
+
+       await Member.insertMany(data)
+
+      res.status(200).send({success:true, msg:"Members added Successfully"})
+    }
+
    
   } catch (error) {
     console.log(error.message)
   }
 }
+
 
 module.exports = {
   register,
@@ -178,5 +228,6 @@ module.exports = {
   updateChat,
   loadGroups,
   createGroup,
-  getMembers
+  getMembers,
+  addMembers
 };
