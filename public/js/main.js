@@ -304,3 +304,26 @@ $("#updateChatGroupForm").submit(function (e) {
     },
   });
 });
+
+//------------------- delete chat group
+$(".deleteGroup").click(function () {
+  $("#delete_group_id").val($(this).attr("data-id"));
+  $("#delete_group_name").val($(this).attr("data-name"));
+});
+
+$("#deleteChatGroupForm").submit(function (e) {
+  e.preventDefault();
+
+  var formData = $(this).serialize();
+
+  $j.ajax({
+    url: "/delete-chat-group",
+    type: "POST",
+    data: formData,
+    success: function (res) {
+      if (res.success) {
+        location.reload();
+      }
+    },
+  });
+});

@@ -250,6 +250,19 @@ const updateChatGroup = async (req, res) => {
   }
 };
 
+const deleteChatGroup = async (req, res) => {
+  try {
+    const groupId = req.body.id;
+    await Group.deleteOne({ _id: groupId });
+    await Member.deleteMany({ group_id: groupId });
+    res
+      .status(200)
+      .send({ success: true, msg: "Chat Group Deleted Successfully" });
+  } catch (error) {
+    res.status(400).send({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   register,
   registerLoad,
@@ -265,4 +278,5 @@ module.exports = {
   getMembers,
   addMembers,
   updateChatGroup,
+  deleteChatGroup,
 };

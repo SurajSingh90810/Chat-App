@@ -45,4 +45,6 @@ user_route.post(
   userController.updateChatGroup
 );
 
+user_route.post("/delete-chat-group", userController.deleteChatGroup);
+
 module.exports = user_route;
