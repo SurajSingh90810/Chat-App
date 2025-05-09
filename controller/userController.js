@@ -158,34 +158,36 @@ const createGroup = async (req, res) => {
 
 const getMembers = async (req, res) => {
   try {
-    if (!req.session.user) return res.redirect("/");
-    if (!req.body.group_id)
-      return res
-        .status(400)
-        .send({ success: false, message: "group_id is required" });
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-    const groupMembers = await Member.find({
-      group_id: req.body.group_id,
-    }).select("user_id -_id");
+    const { group_id } = req.body;
+    if (!group_id) {
+      return res.status(400).json({ success: false, message: "group_id is required" });
+    }
 
-    const allUsers = await User.find({
-      _id: { $ne: req.session.user._id },
-    }).select("name _id");
+    console.log("Group ID received:", group_id);
 
-    res.status(200).send({
-      success: true,
-      data: allUsers.map((user) => ({
-        ...user.toObject(),
-        member: groupMembers.some((m) => m.user_id.equals(user._id))
-          ? [{ _id: user._id }]
-          : [],
-      })),
-    });
+    const groupMembers = await Member.find({ group_id }).select("user_id -_id");
+
+    const allUsers = await User.find({ _id: { $ne: req.session.user._id } }).select("name _id");
+
+    const usersWithMembership = allUsers.map((user) => ({
+      ...user.toObject(),
+      member: groupMembers.some((m) => m.user_id?.toString() === user._id.toString())
+        ? [{ _id: user._id }]
+        : [],
+    }));
+
+    return res.status(200).json({ success: true, data: usersWithMembership });
+
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ success: false, message: "Error fetching members" });
+    console.error("Error in /get-members:", error);
+    return res.status(500).json({ success: false, message: "Error fetching members" });
   }
 };
+
 
 const addMembers = async (req, res) => {
   try {
@@ -263,6 +265,40 @@ const deleteChatGroup = async (req, res) => {
   }
 };
 
+const shareGroup = async (req, res) => {
+  try {
+    const groupData = await Group.findOne({ _id: req.params.id });
+
+    if (!groupData) {
+      return res.render('error', { message: '404 not found!' });
+    }
+
+    if (!req.session.user) {
+      return res.render('error', { message: 'You need to login to access the Share URL!' });
+    }
+
+    const totalMembers = await Member.countDocuments({ group_id: req.params.id });
+    const available = groupData.limit - totalMembers;
+
+    const isOwner = String(groupData.creator_id) === String(req.session.user._id);
+    const isJoined = await Member.countDocuments({ group_id: req.params.id, user_id: req.session.user._id });
+
+    res.render('shareLink', {
+      group: groupData,
+      totalMembers: totalMembers,
+      isOwner: isOwner,
+      isJoined: isJoined,
+      available
+    });
+  } catch (error) {
+    res.status(400).send({ success: false, message: error.message });
+  }
+};
+
+
+
+
+
 module.exports = {
   register,
   registerLoad,
@@ -279,4 +315,7 @@ module.exports = {
   addMembers,
   updateChatGroup,
   deleteChatGroup,
+  shareGroup,
+  
+
 };

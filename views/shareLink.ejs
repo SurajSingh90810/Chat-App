@@ -1,0 +1,25 @@
+<%- include('layout/header') %>
+
+<div class="container">
+  <div>
+    <img src="/<%= group.image %>" alt="" width="200px" height="200px">
+    <p><b><%= group.name %></b></p>
+    <p><b>Total Members:- </b> <%= totalMembers %></p>
+
+    <% if (available != 0) { %>
+      <p>Available for <b><%= available %></b> Members Only.</p>
+    <% } %>
+
+    <% if (isOwner) { %>
+      <p>You are the creator of this group, so you can't join this</p>
+    <% } else if (isJoined > 0) { %>
+      <p>You already joined this Group</p>
+    <% } else if (available == 0) { %>
+      <p>You already joined this Group.</p>
+    <% } else { %>
+      <button class="btn btn-primary join-now" data-id="<%=group._id%>">Join Now</button>
+    <% } %>
+  </div>
+</div>
+
+<%- include('layout/footer') %>

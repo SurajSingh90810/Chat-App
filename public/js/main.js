@@ -14,7 +14,6 @@
   });
 })(jQuery);
 
-// start Dynamic chat app
 
 function getCookie(name) {
   let matches = document.cookie.match(
@@ -36,8 +35,8 @@ var socket = io("/user-namespace", {
   },
 });
 
-$j(document).ready(function () {
-  $j(".user-list").click(function () {
+jQuery(document).ready(function () {
+  jQuery(".user-list").click(function () {
     var userId = $j(this).attr("data-id");
     receiver_id = userId;
     $j(".start-head").hide();
@@ -308,7 +307,7 @@ $("#updateChatGroupForm").submit(function (e) {
 //------------------- delete chat group
 $(".deleteGroup").click(function () {
   $("#delete_group_id").val($(this).attr("data-id"));
-  $("#delete_group_name").val($(this).attr("data-name"));
+  $("#delete_group_name").text($(this).attr("data-name"));
 });
 
 $("#deleteChatGroupForm").submit(function (e) {
@@ -326,4 +325,51 @@ $("#deleteChatGroupForm").submit(function (e) {
       }
     },
   });
+});
+
+
+$('.copy').click(function(){
+
+  $(this).prepend('<span class="copied_text">Copied</span>');
+
+  var group_id = $(this).attr('data-id');
+  var url = window.location.host + '/share-group/' + group_id;
+
+  var temp = $("<input>");
+  $("body").append(temp);
+  temp.val(url).select();
+  document.execCommand("copy");
+
+  temp.remove();
+
+  setTimeout(() => {
+      $('.copied_text').remove();
+  }, 2000);
+});
+
+
+$('.join-now').click(function(){
+
+  $(this).text('Wait...');
+  $(this).attr('disabled', 'disabled');
+
+  var group_id = $(this).attr('data-id');
+
+  $j.ajax({
+      url: "/join-group",
+      type: "POST",
+      data: { group_id: group_id },
+      success: function(res){
+
+        alert(res.msg)
+        if(res.success){
+          location.reload()
+        }else{
+          $(this).text("Join Now")
+          $(this).removeAttr("disabled")
+        }
+
+      }
+  });
+
 });

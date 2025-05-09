@@ -46,5 +46,5 @@ user_route.post(
 );
 
 user_route.post("/delete-chat-group", userController.deleteChatGroup);
-
+user_route.get("/share-group/:id",userController.shareGroup)
 module.exports = user_route;
