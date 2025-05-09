@@ -295,7 +295,18 @@ const shareGroup = async (req, res) => {
   }
 };
 
-
+const joinGroup = async (req, res) => {
+  try {
+      const member = new Member({
+          group_id: req.body.group_id,
+          user_id: req.session.user_id
+      });
+      await member.save();
+      res.send({ success: true, msg: 'Congratulation, you have Joined the Group Successfully!' });
+  } catch (error) {
+      res.send({ success: false, msg: error.message });
+  }
+}
 
 
 
@@ -305,7 +316,7 @@ module.exports = {
   login,
   loadLogin,
   loadDashboard,
-  logout,
+  logout, 
   saveChat,
   deleteChat,
   updateChat,
@@ -316,6 +327,7 @@ module.exports = {
   updateChatGroup,
   deleteChatGroup,
   shareGroup,
+  joinGroup
   
 
 };
