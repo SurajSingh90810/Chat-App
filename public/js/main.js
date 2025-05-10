@@ -322,11 +322,10 @@
   });
 
   $(".join-now").click(function () {
-    var $btn = $(this);
-    $btn.text("Wait...");
-    $btn.attr("disabled", "disabled");
+    $(this).text("Wait...");
+    $(this).attr("disabled", "disabled");
 
-    var group_id = $btn.attr("data-id");
+    var group_id = $(this).attr("data-id");
 
     $.ajax({
       url: "/join-group",
@@ -337,10 +336,18 @@
           location.reload();
           
         } else {
-          $btn.text("Join Now");
-          $btn.removeAttr("disabled");
+          $(this).text("Join Now");
+          $(this).removeAttr("disabled");
         }
       },
     });
   });
+
+
+
+  $(".group-list").click(function(){
+    $(".group-start-head").hide()
+    $(".group-chat-section").show()
+
+  })
 })(jQuery);

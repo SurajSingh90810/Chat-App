@@ -8381,3 +8381,16 @@ a[data-toggle="collapse"] {
   #add-member-error{
     color: red;
   }
+
+
+
+  #group-chat-container {
+      background-color: lightblue;
+      width: 100%;
+      height: 400px;
+      overflow: scroll;
+  }
+
+    .group-chat-section {
+      display: none;
+  }

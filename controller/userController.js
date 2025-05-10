@@ -299,7 +299,7 @@ const joinGroup = async (req, res) => {
   try {
       const member = new Member({
           group_id: req.body.group_id,
-          user_id: req.session.user_id
+          user_id: req.session.user._id
       });
       await member.save();
       res.send({ success: true, msg: 'Congratulation, you have Joined the Group Successfully!' });
@@ -308,6 +308,16 @@ const joinGroup = async (req, res) => {
   }
 }
 
+const groupChats = async (req, res) => {
+  try {
+    const myGroups = await Group.find({ creator_id: req.session.user._id });
+    const joinedGroups = await Member.find({ user_id: req.session.user._id }).populate('group_id');
+
+    res.render('chat-group', { myGroups: myGroups, joinedGroups: joinedGroups });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
 
 module.exports = {
@@ -327,7 +337,8 @@ module.exports = {
   updateChatGroup,
   deleteChatGroup,
   shareGroup,
-  joinGroup
+  joinGroup,
+  groupChats
   
 
 };
